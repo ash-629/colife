@@ -1,0 +1,118 @@
+[
+  {
+    "check": "real flow persistence",
+    "goals": 1,
+    "tasks": 5,
+    "quizScore": 3,
+    "quizTotal": 4,
+    "finishedFocus": 1
+  },
+  {
+    "check": "100 state GET requests, concurrency 10",
+    "minMs": 1.8,
+    "p50Ms": 8.46,
+    "p95Ms": 14.76,
+    "maxMs": 18.71
+  },
+  {
+    "check": "formal service available; QA untrusted origin blocked; homepage served",
+    "passed": true
+  },
+  {
+    "check": "real model runs",
+    "runs": [
+      {
+        "kind": "plan",
+        "status": "applied",
+        "nodes": [
+          {
+            "agent": "coordinator",
+            "status": "succeeded"
+          },
+          {
+            "agent": "learning",
+            "status": "succeeded"
+          },
+          {
+            "agent": "life",
+            "status": "succeeded"
+          },
+          {
+            "agent": "planner",
+            "status": "succeeded"
+          },
+          {
+            "agent": "review",
+            "status": "succeeded"
+          }
+        ]
+      },
+      {
+        "kind": "quiz",
+        "status": "succeeded",
+        "nodes": [
+          {
+            "agent": "coordinator",
+            "status": "succeeded"
+          },
+          {
+            "agent": "learning",
+            "status": "succeeded"
+          }
+        ]
+      },
+      {
+        "kind": "reschedule",
+        "status": "applied",
+        "nodes": [
+          {
+            "agent": "coordinator",
+            "status": "succeeded"
+          },
+          {
+            "agent": "learning",
+            "status": "succeeded"
+          },
+          {
+            "agent": "life",
+            "status": "succeeded"
+          },
+          {
+            "agent": "planner",
+            "status": "succeeded"
+          },
+          {
+            "agent": "review",
+            "status": "succeeded"
+          }
+        ]
+      },
+      {
+        "kind": "review",
+        "status": "rejected",
+        "nodes": [
+          {
+            "agent": "coordinator",
+            "status": "succeeded"
+          },
+          {
+            "agent": "learning",
+            "status": "succeeded"
+          },
+          {
+            "agent": "life",
+            "status": "succeeded"
+          },
+          {
+            "agent": "review",
+            "status": "succeeded"
+          },
+          {
+            "agent": "planner",
+            "status": "succeeded"
+          }
+        ]
+      }
+    ]
+  }
+]

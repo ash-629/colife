@@ -1,0 +1,55 @@
+.loading-screen {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  gap: 18px;
+  text-align: center;
+}
+.error-banner {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  margin: 0;
+  padding: 14px 24px;
+  background: #fff1ed;
+  color: #9d3c29;
+  border-bottom: 1px solid #ebc6bc;
+}
+.modal-error {
+  margin: 16px 24px;
+  padding: 12px;
+  background: #fff1ed;
+  border-radius: 8px;
+}
+.field select[multiple] {
+  min-height: 100px;
+}
+.field select {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid var(--line, #ddd);
+  border-radius: 8px;
+  background: white;
+  font: inherit;
+}
+dialog {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #7ba594;
+  outline-offset: 3px;
+}
+@media (max-width: 640px) {
+  dialog {
+    width: calc(100vw - 24px);
+    margin: auto;
+  }
+  .error-banner {
+    padding: 12px;
+  }
+}

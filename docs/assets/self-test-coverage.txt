@@ -1,0 +1,122 @@
+(node:8988) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ manual goal and task lifecycle persists in shared state (195.8652ms)
+✔ unknown origins and invalid settings are blocked (12.6392ms)
+✔ temporary sharing allows only the configured exact origin (6.7064ms)
+(node:37668) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ persistent records survive closing and reopening (46.9721ms)
+✔ capacity and invalid dates reject without adding tasks (6.5262ms)
+✔ dependency completion and cycle checks (6.4708ms)
+✔ proposal application is atomic, stale-safe and idempotent (4.3607ms)
+✔ habit checkins and quiz feedback are idempotent (4.3624ms)
+(node:4036) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ goal boundary: blank title (191.9372ms)
+✔ goal boundary: title overflow (7.4204ms)
+✔ goal boundary: missing title (6.0979ms)
+✔ goal boundary: wrong type (5.8968ms)
+✔ goal boundary: invalid calendar date (6.095ms)
+✔ goal boundary: malformed date (6.548ms)
+✔ goal boundary: past deadline (6.2051ms)
+✔ goal boundary: low minutes (7.4054ms)
+✔ goal boundary: high minutes (7.2391ms)
+✔ goal boundary: fraction minutes (4.5258ms)
+✔ goal boundary: string minutes (4.8469ms)
+✔ goal boundary: criteria overflow (6.0702ms)
+✔ goal boundary: context overflow (4.3925ms)
+✔ goal boundary: unknown field (4.1217ms)
+✔ all manual CRUD routes, search, fixed arrangements, statistics and missing IDs (43.1017ms)
+✔ input rejection POST /api/tasks: {"title":"","date":"2099-01-01","minutes":30} (3.1695ms)
+✔ input rejection POST /api/tasks: {"title":"字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字 (2.8415ms)
+✔ input rejection POST /api/tasks: {"title":"t","date":"2099-01-01","minutes":0} (2.9255ms)
+✔ input rejection POST /api/tasks: {"title":"t","date":"2099-01-01","minutes":481} (3.5335ms)
+✔ input rejection POST /api/tasks: {"title":"t","date":"2099-01-01","minutes":1.5} (6.8046ms)
+✔ input rejection POST /api/tasks: {"title":"t","date":"bad","minutes":30} (3.9612ms)
+✔ input rejection POST /api/tasks: {"title":"t","date":"2099-01-01","minutes":30,"priority":"urgent"} (3.1132ms)
+✔ input rejection POST /api/tasks: {"title":"t","date":"2099-01-01","minutes":30,"dependencies":["a","a","a","a","a","a" (4.1785ms)
+✔ input rejection POST /api/tasks: {"title":"t","date":"2099-01-01","minutes":30,"note":"字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字 (2.9971ms)
+✔ input rejection POST /api/habits: {"name":" ","target":"每天"} (2.8925ms)
+✔ input rejection POST /api/habits: {"name":"字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字","target":"每天"} (2.7917ms)
+✔ input rejection POST /api/habits: {"name":"习惯","target":"字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字" (4.3466ms)
+✔ input rejection POST /api/notes: {"title":"笔记","body":" "} (4.1227ms)
+✔ input rejection POST /api/notes: {"title":"字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字","body":"正文"} (3.1246ms)
+✔ input rejection POST /api/notes: {"title":"笔记","body":"字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字 (2.786ms)
+✔ input rejection POST /api/resources: {"goal":"g","title":"资源","url":"javascript:alert(1)"} (2.9239ms)
+✔ input rejection POST /api/resources: {"goal":"g","title":"资源","url":"file:///C:/secret"} (2.9079ms)
+✔ input rejection POST /api/resources: {"goal":"g","title":"资源","url":"not-url"} (4.6006ms)
+✔ input rejection POST /api/resources: {"goal":"g","title":"字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字字 (3.1526ms)
+✔ input rejection PUT /api/energy: {"date":"2099-01-01","value":"good"} (3.5137ms)
+✔ input rejection POST /api/runs: {"kind":"unknown"} (4.3262ms)
+✔ input rejection POST /api/runs: {"kind":"plan"} (4.7978ms)
+✔ input rejection POST /api/focus: {} (3.5482ms)
+✔ settings boundaries, timezones, stats ranges and inert injection strings (10.9372ms)
+✔ non-object patch bodies are validation errors rather than server failures (4.7421ms)
+✔ focus respects unfinished dependency guards (1.9184ms)
+✔ explicit empty or wrong status cannot silently preserve the old status (9.4218ms)
+(node:30236) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ required Agent guards, immutable snapshot and optional skip (55.0429ms)
+✔ life goals, terminal goal and review range guard (15.4483ms)
+✔ invalid model plan: unknown move (19.3549ms)
+✔ invalid model plan: done move (31.5833ms)
+✔ invalid model plan: new task on reschedule (18.884ms)
+✔ invalid model plan: duplicate reference (27.4006ms)
+✔ invalid model plan: unknown reference (16.03ms)
+✔ invalid model plan: cycle reference (14.2099ms)
+✔ reschedule applies existing records without duplication and rejects stale versions (33.8811ms)
+✔ quiz answers protected, invalid submissions rejected, revision only once (29.1303ms)
+(node:33112) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ health returns service status without credentials (164.499ms)
+✔ missing model key fails clearly without network request (1.9407ms)
+✔ invalid credentials do not retry or expose upstream response (34.3238ms)
+✔ rate limit retries then parses validated output (514.5873ms)
+(node:34024) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ settings and goal capacity changes roll back when existing tasks conflict (41.5652ms)
+✔ focus preserves paused time and counts completed sessions only (7.124ms)
+✔ fixed reservations cannot exceed capacity on otherwise empty dates (4.3025ms)
+✔ revision chooses available date and cannot duplicate tasks (5.2313ms)
+✔ restart restores interrupted runs without losing accepted tasks (3.7979ms)
+✔ stale revision regenerates in same proposal without duplicate feedback (7.4796ms)
+✔ public state has all page collections and hides unsubmitted quiz answers (3.3597ms)
+✔ SQLite online backup contains committed records and migration (18.1234ms)
+(node:39076) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ real orchestration boundary uses structured upstream and applies only after confirmation (60.4943ms)
+✔ failure retry preserves successful upstream nodes (35.4732ms)
+✔ cancelled asynchronous output cannot land a proposal (62.4477ms)
+✔ invalid final plan retry receives validation feedback and reuses upstream (32.7944ms)
+✔ quiz and review outputs are distinct and stats persist (30.9991ms)
+✔ task dependencies use named multi-select with accessible task labels (16.8251ms)
+✔ modal failures remain visible in dialog and user text is escaped (1.0255ms)
+ℹ tests 79
+ℹ suites 0
+ℹ pass 79
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1393.0118
+ℹ start of coverage report
+ℹ ------------------------------------------------------------------------------------------------------------------
+ℹ file              | line % | branch % | funcs % | uncovered lines
+ℹ ------------------------------------------------------------------------------------------------------------------
+ℹ apps              |        |          |         | 
+ℹ  api              |        |          |         | 
+ℹ   app.ts          |  98.64 |    92.19 |   97.67 | 119-121
+ℹ   config.ts       | 100.00 |    33.33 |  100.00 | 
+ℹ   domain.ts       |  98.01 |    90.91 |   93.55 | 86 91 118-119 175 296 359 408 423 457-458 473
+ℹ   model.ts        | 100.00 |   100.00 |  100.00 | 
+ℹ   runs.ts         |  99.23 |    94.67 |   92.00 | 98 204 265
+ℹ   store.ts        | 100.00 |   100.00 |  100.00 | 
+ℹ  web              |        |          |         | 
+ℹ   src             |        |          |         | 
+ℹ    components.tsx |  67.42 |    54.55 |   35.71 | 19-23 28-40 45 55-63 76-83 85-93 98-104 111-118 123-129 132-136
+ℹ shared            |        |          |         | 
+ℹ  contracts.ts     | 100.00 |   100.00 |  100.00 | 
+ℹ ------------------------------------------------------------------------------------------------------------------
+ℹ all files         |  95.15 |    91.23 |   91.07 | 
+ℹ ------------------------------------------------------------------------------------------------------------------
+ℹ end of coverage report
