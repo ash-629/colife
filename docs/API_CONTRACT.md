@@ -19,7 +19,7 @@
 | POST/DELETE /resources/:id | 资料（新增为POST /resources） |
 | POST /focus | 开始任务专注 |
 | POST /focus/:id/pause,resume,finish | 分段计时与结束保存 |
-| POST /runs | kind=plan/quiz/reschedule/review，后台真实协作 |
+| POST /runs | kind=plan/quiz/reschedule/review；可选 instructions 为本次说明（去除两端空格后最多1000字），goal 为关联目标；后台真实协作，重新排期指定 goal 时仅调整该目标任务 |
 | GET /runs/:id | 节点、摘要与产出 |
 | POST /runs/:id/retry,cancel | 失败重试／取消 |
 | POST /proposals/:id/apply,reject | 事务应用／保留原计划 |

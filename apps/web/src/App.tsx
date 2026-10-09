@@ -207,10 +207,11 @@ export function App() {
       .filter((g) => !["completed", "archived"].includes(g.status))
       .map((g) => ({ value: g.id, label: g.title })),
   ];
-  const start = async (kind: string, goal?: string) => {
+  const start = async (kind: string, goal?: string, instructions?: string) => {
     const r = await api("/runs", "POST", {
       kind,
       ...(goal ? { goal } : {}),
+      ...(instructions?.trim() ? { instructions: instructions.trim() } : {}),
       ...(kind === "review" ? { from, to } : {}),
     });
     setModal({ kind: "run", id: r.id });
@@ -530,10 +531,10 @@ export function App() {
               {button(
                 "✧ 重新排期",
                 () =>
-                  act(
-                    () => start("reschedule", selectedGoal || undefined),
-                    "已发起日程协作",
-                  ),
+                  setModal({
+                    kind: "reschedule",
+                    data: { goal: selectedGoal || "" },
+                  }),
                 true,
               )}
             </div>
@@ -906,7 +907,9 @@ export function App() {
               <p>记录精力不会直接改变日程。通过协作生成建议，审阅后再确认。</p>
               <button
                 className="text-button"
-                onClick={() => act(() => start("reschedule"), "已发起调整协作")}
+                onClick={() =>
+                  setModal({ kind: "reschedule", data: { goal: "" } })
+                }
               >
                 查看调整建议 →
               </button>
@@ -1128,6 +1131,48 @@ export function App() {
       await runAction(() => api(path, method, value));
       setModal(null);
     };
+    if (m.kind === "reschedule") {
+      return (
+        <Modal
+          error={error}
+          title="这次想怎样调整日程？"
+          onClose={() => setModal(null)}
+        >
+          <p className="modal-desc">
+            写下最近的变化、希望优先做的事，或需要避开的日期。例如：“这周比较忙，把明天的学习任务移到后天。”
+          </p>
+          <p className="modal-desc">
+            说明可以留空。生成后先审阅提案，确认后才会修改日程。
+          </p>
+          <Form
+            fields={[
+              {
+                name: "goal",
+                label: "调整范围",
+                value: m.data?.goal || "",
+                options: [
+                  { value: "", label: "所有目标与个人任务" },
+                  ...goalOptions.slice(1),
+                ],
+              },
+              {
+                name: "instructions",
+                label: "调整想法或说明（可选）",
+                type: "textarea",
+                max: 1000,
+              },
+            ]}
+            label="开始重新排期"
+            onSubmit={async (v) => {
+              await runAction(
+                () => start("reschedule", v.goal || undefined, v.instructions),
+                "已发起日程协作",
+              );
+            }}
+          />
+        </Modal>
+      );
+    }
     if (
       [
         "goal-form",
@@ -1513,6 +1558,9 @@ export function App() {
               <p className="modal-desc">
                 {r.title} · {label(r.status)}
               </p>
+              {r.instructions && (
+                <p className="inline-info">本次说明：{r.instructions}</p>
+              )}
               <p className="modal-desc">
                 {r.orchestration === "parallel-v1"
                   ? r.kind === "quiz"
@@ -1625,6 +1673,7 @@ export function App() {
             const run = await api("/runs", "POST", {
               kind: r?.kind || "reschedule",
               ...(r?.goal ? { goal: r.goal } : {}),
+              ...(r?.instructions ? { instructions: r.instructions } : {}),
               ...(r?.kind === "review" ? { from: r.from, to: r.to } : {}),
             });
             setModal({ kind: "run", id: run.id });
@@ -2062,11 +2111,17 @@ export function App() {
                 ],
               },
               { name: "goal", label: "关联目标", options: goalOptions },
+              {
+                name: "instructions",
+                label: "想法或说明（可选）",
+                type: "textarea",
+                max: 1000,
+              },
             ]}
             label="开始协作"
             onSubmit={async (v) => {
               await runAction(
-                () => start(v.kind, v.goal || undefined),
+                () => start(v.kind, v.goal || undefined, v.instructions),
                 "已发起协作",
               );
             }}

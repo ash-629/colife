@@ -159,6 +159,7 @@ export const runInput = z
     goal: z.string().optional(),
     from: date.optional(),
     to: date.optional(),
+    instructions: z.string().trim().max(1000).optional(),
   })
   .strict();
 export const statusLabels = {

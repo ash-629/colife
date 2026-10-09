@@ -347,6 +347,14 @@ export class Runs {
       });
       if (moves.some((m: any) => !all.some((t) => t.id === m.taskId)))
         fail("模型引用了不存在的任务");
+      if (
+        r.kind === "reschedule" &&
+        r.goal &&
+        moves.some(
+          (m: any) => all.find((t) => t.id === m.taskId)?.goal !== r.goal,
+        )
+      )
+        fail("模型尝试调整所选目标以外的任务");
       this.d.validateTasks([
         ...updated,
         ...tasks.map((t: any) => ({ ...t, id: t.taskId, status: "todo" })),

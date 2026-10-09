@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { Store } from "../apps/api/store";
 import { Domain, addDay } from "../apps/api/domain";
 import { Runs } from "../apps/api/runs";
-import { agentInfo } from "../shared/contracts";
+import { agentInfo, runInput } from "../shared/contracts";
 import type { ModelCall } from "../apps/api/model";
 const gate = () => {
   let release!: () => void;
@@ -410,6 +410,90 @@ test("cancel during parallel analysis blocks both late results and downstream", 
     assert.equal(d.require("goal", g.id).status, "draft");
   } finally {
     release.release();
+    await engine.close();
+    store.close();
+  }
+});
+
+test("reschedule instructions are validated, persisted and delivered to every Agent and retry", async () => {
+  assert.equal(
+    runInput.parse({ kind: "reschedule", instructions: "  明天休息  " })
+      .instructions,
+    "明天休息",
+  );
+  assert.throws(() =>
+    runInput.parse({ kind: "reschedule", instructions: "字".repeat(1001) }),
+  );
+  assert.throws(() =>
+    runInput.parse({ kind: "reschedule", instructions: 123 }),
+  );
+  const store = new Store(":memory:"),
+    d = new Domain(store);
+  const task = d.task({ title: "整理笔记", date: d.today(), minutes: 20 });
+  const instructions = "今天比较忙，把整理笔记移到明天";
+  let failed = false;
+  const roles: string[] = [];
+  const engine = new Runs(d, async (role, schema, context: any) => {
+    roles.push(role);
+    assert.equal(context.request.instructions, instructions);
+    if (role === "计划 Agent" && !failed) {
+      failed = true;
+      throw Error("retry test");
+    }
+    const result = output(role, context);
+    if (role === "计划 Agent")
+      (result as any).moves = [
+        { taskId: task.id, date: addDay(d.today(), 1), reason: instructions },
+      ];
+    return schema.parse(result);
+  });
+  try {
+    const r = engine.start({ kind: "reschedule", instructions });
+    assert.equal((await wait(engine, r.id)).status, "failed");
+    assert.equal(engine.get(r.id).instructions, instructions);
+    engine.retry(r.id);
+    const done = await wait(engine, r.id);
+    assert.equal(done.status, "pending");
+    assert.equal(new Set(roles).size, 5);
+    assert.equal(d.require("task", task.id).date, d.today());
+    d.apply(done.proposal);
+    assert.equal(d.require("task", task.id).date, addDay(d.today(), 1));
+  } finally {
+    await engine.close();
+    store.close();
+  }
+});
+
+test("reschedule cannot move tasks outside the selected goal", async () => {
+  const store = new Store(":memory:"),
+    d = new Domain(store);
+  const g = d.goal({
+    title: "React",
+    type: "学习",
+    deadline: addDay(d.today(), 7),
+    minutes: 120,
+  });
+  const task = d.task({ title: "个人任务", date: d.today(), minutes: 20 });
+  const engine = new Runs(d, async (role, schema, context) => {
+    const result = output(role, context);
+    if (role === "计划 Agent")
+      (result as any).moves = [
+        { taskId: task.id, date: addDay(d.today(), 1), reason: "调整" },
+      ];
+    return schema.parse(result);
+  });
+  try {
+    const r = engine.start({
+      kind: "reschedule",
+      goal: g.id,
+      instructions: "只调整这个目标",
+    });
+    const done = await wait(engine, r.id);
+    assert.equal(done.status, "failed");
+    assert.match(done.error, /所选目标以外/);
+    assert.equal(store.list("proposal").length, 0);
+    assert.equal(d.require("task", task.id).date, d.today());
+  } finally {
     await engine.close();
     store.close();
   }
