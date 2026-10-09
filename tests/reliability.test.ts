@@ -171,6 +171,38 @@ test("stale revision regenerates in same proposal without duplicate feedback", (
     s.close();
   }
 });
+test("rejected revision regenerates with current capacity and stays idempotent", () => {
+  const { s, d, g } = fixture();
+  try {
+    const q = s.put("quiz", {
+      goal: g.id,
+      questions: [
+        {
+          question: "Q",
+          options: ["A", "B", "C", "D"],
+          correct: 1,
+          topic: "状态",
+          explanation: "解释",
+        },
+      ],
+    });
+    d.submitQuiz(q.id, [0]);
+    const p = d.revision(q.id);
+    d.reject(p.id);
+    assert.throws(() => d.apply(p.id), /不可应用/);
+    const regenerated = d.revision(q.id);
+    assert.equal(regenerated.id, p.id);
+    assert.equal(regenerated.status, "pending");
+    assert.equal(s.list("task").length, 0);
+    assert.equal(d.revision(q.id).id, p.id);
+    d.apply(regenerated.id);
+    d.apply(regenerated.id);
+    assert.equal(s.list("task").length, 1);
+    assert.equal(d.revision(q.id).status, "applied");
+  } finally {
+    s.close();
+  }
+});
 test("public state has all page collections and hides unsubmitted quiz answers", () => {
   const { s, d, g } = fixture();
   try {

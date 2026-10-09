@@ -1550,6 +1550,21 @@ export function App() {
       const p = data.proposals.find((p) => p.id === m.id);
       if (!p) return null;
       const stale = p.status === "pending" && p.baseVersion !== data.version;
+      const regenerate = () =>
+        act(async () => {
+          if (p.quiz) {
+            const updated = await api(`/quizzes/${p.quiz}/revision`, "POST");
+            setModal({ kind: "proposal", id: updated.id });
+          } else {
+            const r = data.runs.find((r) => r.id === p.run);
+            const run = await api("/runs", "POST", {
+              kind: r?.kind || "reschedule",
+              ...(r?.goal ? { goal: r.goal } : {}),
+              ...(r?.kind === "review" ? { from: r.from, to: r.to } : {}),
+            });
+            setModal({ kind: "run", id: run.id });
+          }
+        }, "已重新生成");
       return (
         <Modal
           error={error}
@@ -1559,6 +1574,11 @@ export function App() {
           <span className="tag">{label(stale ? "stale" : p.status)}</span>
           {stale && (
             <p className="error">记录已变化，请根据最新日程重新生成。</p>
+          )}
+          {p.status === "rejected" && (
+            <p className="inline-info" role="status">
+              这份提案已选择保留原计划，尚未写入日程。若希望采用建议，请根据最新记录重新生成提案，审阅后确认并应用。
+            </p>
           )}
           <h3>建议理由</h3>
           <div className="inline-info">{p.reason}</div>
@@ -1609,30 +1629,10 @@ export function App() {
                       nav("tasks");
                     }, "计划已加入日程"),
                   )}
-                {stale &&
-                  button("重新生成提案", () =>
-                    act(async () => {
-                      if (p.quiz) {
-                        const updated = await api(
-                          `/quizzes/${p.quiz}/revision`,
-                          "POST",
-                        );
-                        setModal({ kind: "proposal", id: updated.id });
-                      } else {
-                        const r = data.runs.find((r) => r.id === p.run);
-                        const run = await api("/runs", "POST", {
-                          kind: r?.kind || "reschedule",
-                          ...(r?.goal ? { goal: r.goal } : {}),
-                          ...(r?.kind === "review"
-                            ? { from: r.from, to: r.to }
-                            : {}),
-                        });
-                        setModal({ kind: "run", id: run.id });
-                      }
-                    }, "已重新生成"),
-                  )}
+                {stale && button("重新生成提案", regenerate)}
               </>
             )}
+            {p.status === "rejected" && button("重新生成提案", regenerate)}
           </div>
         </Modal>
       );

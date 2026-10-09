@@ -169,7 +169,7 @@ export const statusLabels = {
   failed: "失败",
   cancelled: "已取消",
   applied: "已应用",
-  rejected: "未应用",
+  rejected: "已保留原计划",
   stale: "已失效",
   succeeded: "已成功",
   waiting: "等待",

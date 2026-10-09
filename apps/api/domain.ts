@@ -546,8 +546,9 @@ export class Domain {
       : undefined;
     if (
       previous &&
-      (previous.status !== "pending" ||
-        previous.baseVersion === this.store.version())
+      (previous.status === "applied" ||
+        (previous.status === "pending" &&
+          previous.baseVersion === this.store.version()))
     )
       return previous;
     if (q.result.score === q.result.total)
