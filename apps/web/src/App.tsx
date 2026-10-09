@@ -217,7 +217,18 @@ export function App() {
     return r;
   };
   const taskRow = (t: Item) => (
-    <div className="task-row" key={t.id}>
+    <div
+      className="task-row task-clickable"
+      key={t.id}
+      onClick={(e) => {
+        if (
+          !(e.target as HTMLElement).closest(
+            "button, select, input, textarea, a",
+          )
+        )
+          setModal({ kind: "task", id: t.id });
+      }}
+    >
       <button
         className={"check " + (t.status === "done" ? "checked" : "")}
         disabled={busy}
@@ -538,7 +549,18 @@ export function App() {
                   {ts
                     .filter((t) => t.status === s)
                     .map((t) => (
-                      <article className="task-card" key={t.id}>
+                      <article
+                        className="task-card task-clickable"
+                        key={t.id}
+                        onClick={(e) => {
+                          if (
+                            !(e.target as HTMLElement).closest(
+                              "button, select, input, textarea, a",
+                            )
+                          )
+                            setModal({ kind: "task", id: t.id });
+                        }}
+                      >
                         <span className="tag">{t.priority}优先级</span>
                         <h3>
                           <button

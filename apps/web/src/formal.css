@@ -5,6 +5,14 @@
   gap: 18px;
   text-align: center;
 }
+.task-clickable {
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.task-clickable:hover,
+.task-clickable:focus-within {
+  background-color: #f3f7f3;
+}
 .error-banner {
   position: sticky;
   top: 0;
