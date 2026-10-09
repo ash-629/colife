@@ -188,7 +188,7 @@ export const agentInfo = [
     id: "coordinator",
     name: "协调 Agent",
     icon: "✳",
-    desc: "理解目标，分派任务并汇总产出。",
+    desc: "理解目标，协调伙伴并汇总建议。",
   },
   {
     id: "learning",
@@ -200,7 +200,7 @@ export const agentInfo = [
     id: "planner",
     name: "计划 Agent",
     icon: "▦",
-    desc: "整合任务、容量与生活约束。",
+    desc: "安排任务时间，兼顾学习与生活。",
   },
   {
     id: "life",
@@ -212,6 +212,6 @@ export const agentInfo = [
     id: "review",
     name: "复盘 Agent",
     icon: "◷",
-    desc: "从真实执行记录中提炼调整建议。",
+    desc: "回顾执行记录，提炼调整建议。",
   },
 ];

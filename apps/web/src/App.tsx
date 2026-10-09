@@ -317,7 +317,7 @@ export function App() {
                 你专注当下，我们一起照看前进的方向。
               </p>
               <small>
-                真实数据 · {dateLabel(data.today)} · {data.settings.timezone}
+                {dateLabel(data.today)} · {data.settings.timezone}
               </small>
             </div>
             <div className="hero-art" aria-hidden="true">
@@ -922,9 +922,8 @@ export function App() {
       return (
         <>
           <div className="inline-info">
-            DeepSeek ·{" "}
-            {data.modelConfigured ? "已配置模型服务" : "模型服务未配置"} ·
-            实际执行进度与产出由服务端保存。
+            DeepSeek · {data.modelConfigured ? "协作已就绪" : "协作暂不可用"} ·
+            伙伴分工协作，你可以随时查看进度和建议。
           </div>
           <div className="agent-cards">
             {agentInfo.map((a) => (
@@ -954,7 +953,7 @@ export function App() {
                               [a.id]: !data.settings.agents[a.id],
                             },
                           }),
-                        "配置对后续运行生效",
+                        "已更新伙伴状态，下次协作生效",
                       )
                     }
                   >
@@ -1020,9 +1019,9 @@ export function App() {
               unit="%"
               foot={`${stats?.scheduledDone || 0} / ${stats?.scheduled || 0} 个安排任务`}
             />
-            <Stat label="实际完成" value={stats?.completed || 0} unit="项" />
+            <Stat label="已完成任务" value={stats?.completed || 0} unit="项" />
             <Stat
-              label="实际专注"
+              label="累计专注"
               value={stats?.focusMinutes || 0}
               unit="分钟"
             />
@@ -1032,7 +1031,7 @@ export function App() {
             <section className="card">
               <div className="section-head">
                 <h2>从记录看见变化</h2>
-                <span className="tag">真实记录</span>
+                <span className="tag">每日趋势</span>
               </div>
               <div className="chart">
                 {stats?.trend?.map((t: any) => (
@@ -1061,7 +1060,7 @@ export function App() {
                 <span>米色：完成任务</span>
               </div>
               <p className="tiny" style={{ marginTop: 15 }}>
-                柱高上限：120 分钟／8 项；悬停可查看实际值。
+                超过120分钟或8项的柱形按上限显示，悬停可查看完整数值。
               </p>
             </section>
             <section className="card">
@@ -1069,8 +1068,7 @@ export function App() {
               <div className="insight">
                 <h3>预计安排 {stats?.plannedMinutes || 0} 分钟</h3>
                 <p>
-                  实际专注 {stats?.focusMinutes || 0}{" "}
-                  分钟。计划耗时与实际记录分开统计。
+                  已专注 {stats?.focusMinutes || 0} 分钟，可与预计用时对照。
                 </p>
               </div>
               <p className="tiny" style={{ marginTop: 15 }}>
@@ -1094,10 +1092,10 @@ export function App() {
                       {r.from} — {r.to}
                     </h3>
                     <p>
-                      生成时事实：{r.facts.completed}项实际完成，
-                      {r.facts.focusMinutes}分钟专注。
+                      本次复盘：完成{r.facts.completed}项任务，累计专注
+                      {r.facts.focusMinutes}分钟。
                     </p>
-                    <h4>原因分析与推测</h4>
+                    <h4>可能的原因</h4>
                     <div className="note">{r.analysis}</div>
                     <div className="chips" style={{ marginTop: 12 }}>
                       {r.suggestions.map((s: string, i: number) => (
@@ -1378,7 +1376,7 @@ export function App() {
           onClose={() => setModal(null)}
         >
           <p className="modal-desc">
-            固定安排按日期占用分钟容量，计划会保护这些时间。
+            固定安排会占用当天的可用时间，伙伴会为这些安排留出时间。
           </p>
           <Form
             fields={[
@@ -1583,8 +1581,8 @@ export function App() {
                 {r.orchestration === "parallel-v1"
                   ? r.kind === "quiz"
                     ? "协调分派后，学习 Agent 生成测验。"
-                    : "学习与生活 Agent 同时分析，后续角色等待完整产出再继续。"
-                  : "此记录采用顺序执行；新发起的协作支持并行分析。"}
+                    : "学习与生活 Agent 同时分析，等待双方完成后再整合建议。"
+                  : "伙伴依次分析，再整合建议。"}
               </p>
               {(r.orchestration === "parallel-v1"
                 ? runStages(r.kind)
@@ -1621,7 +1619,7 @@ export function App() {
                                 n.summary ||
                                 (n.status === "running"
                                   ? "正在分析…"
-                                  : "等待上游产出")}
+                                : "等待前一步完成")}
                             </p>
                             <small>
                               {n.finishedAt
@@ -1709,7 +1707,7 @@ export function App() {
           )}
           {p.status === "rejected" && (
             <p className="inline-info" role="status">
-              这份提案已选择保留原计划，尚未写入日程。若希望采用建议，请根据最新记录重新生成提案，审阅后确认并应用。
+              你已选择保留原计划，日程尚未调整。若想采用建议，可以重新生成提案，审阅后确认并应用。
             </p>
           )}
           <h3>建议理由</h3>
@@ -1739,7 +1737,7 @@ export function App() {
             <Empty>当前无需调整执行任务。</Empty>
           )}
           <p className="tiny muted">
-            应用时会再次检查容量、日期与依赖；数据变化后需重新生成。
+            确认前会核对可用时间、任务日期和前置任务；日程有变化时，请重新生成提案。
           </p>
           <div className="modal-footer">
             {p.status === "pending" && (
@@ -1879,7 +1877,7 @@ export function App() {
             {String(left % 60).padStart(2, "0")}
           </div>
           <p className="tiny muted">
-            计时由服务端保存；关闭窗口不会自动结束专注，可从顶部入口继续。
+            关闭窗口不会结束本次专注，可点击页面顶部的「继续专注」返回。
           </p>
           <div className="modal-footer">
             {f.status !== "finished" && (
@@ -2102,9 +2100,11 @@ export function App() {
                 </div>
               ))}
             <div className="rail-footer">
-              {data.modelConfigured ? "DeepSeek 服务已配置" : "模型服务未配置"}
+              {data.modelConfigured
+                ? "DeepSeek · 协作已就绪"
+                : "DeepSeek · 协作暂不可用"}
               <br />
-              数据保存在本机数据库。
+              提案确认后才会更新日程。
             </div>
           </aside>
         </div>
