@@ -57,6 +57,13 @@ export const agentIds = [
   "review",
 ] as const;
 export type AgentId = (typeof agentIds)[number];
+// F02 / R07：同阶段角色并行，后续阶段等待完整上游。
+export const runStages = (kind: string): AgentId[][] =>
+  kind === "quiz"
+    ? [["coordinator"], ["learning"]]
+    : kind === "review"
+      ? [["coordinator"], ["learning", "life"], ["review"], ["planner"]]
+      : [["coordinator"], ["learning", "life"], ["planner"], ["review"]];
 export const settingsInput = z
   .object({
     timezone: z.string().refine((t) => {

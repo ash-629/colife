@@ -4,6 +4,7 @@ import {
   runInput,
   schemas,
   agentInfo,
+  runStages,
   type AgentId,
 } from "../../shared/contracts";
 import { Domain, DomainError, fail, addDay } from "./domain";
@@ -143,12 +144,7 @@ export class Runs {
         .map((q) => ({ result: q.result, weaknesses: q.weaknesses })),
       facts: this.d.stats(from, to),
     };
-    const order =
-      input.kind === "quiz"
-        ? ["coordinator", "learning"]
-        : input.kind === "review"
-          ? ["coordinator", "learning", "life", "review", "planner"]
-          : ["coordinator", "learning", "life", "planner", "review"];
+    const order = runStages(input.kind).flat();
     const r = this.d.store.put("run", {
       ...input,
       from,
@@ -159,6 +155,7 @@ export class Runs {
       configSnapshot: settings.agents,
       modelSnapshot: { provider: "deepseek", model: config.model },
       context,
+      orchestration: "parallel-v1",
       nodes: order.map((agent) => ({ agent, status: "waiting" })),
     });
     if (goal && input.kind === "plan")
@@ -181,45 +178,28 @@ export class Runs {
   async execute(id: string, controller: AbortController) {
     let r = this.d.require("run", id);
     try {
+      controller.signal.throwIfAborted();
       r = this.d.store.put("run", { ...r, status: "running", error: null }, id);
-      for (let i = 0; i < r.nodes.length; i++) {
+      for (const stage of runStages(r.kind)) {
         controller.signal.throwIfAborted();
         r = this.d.require("run", id);
-        const node = r.nodes[i];
-        if (node.status === "succeeded" || node.status === "skipped") continue;
-        if (!r.configSnapshot[node.agent]) {
-          node.status = "skipped";
-          node.summary = "该角色已暂停";
-          this.d.store.put("run", r, id);
-          continue;
-        }
-        node.status = "running";
-        node.startedAt = new Date().toISOString();
-        this.d.store.put("run", r, id);
-        const schema =
-          r.kind === "quiz" && node.agent === "learning"
-            ? schemas.quiz
-            : schemas[node.agent as keyof typeof schemas];
+        // 同阶段共享同一份上游快照，避免完成先后影响输入。
         const upstream = Object.fromEntries(
           r.nodes
-            .filter((n: any) => n.status === "succeeded")
+            .filter(
+              (n: any) => n.status === "succeeded" && !stage.includes(n.agent),
+            )
             .map((n: any) => [n.agent, n.output]),
         );
-        const output = await this.model(
-          agentInfo.find((a) => a.id === node.agent)!.name,
-          schema,
-          { ...r.context, upstream, validationFeedback: r.lastFailure },
-          controller.signal,
+        // 等待所有并行调用收尾，保留成功分支并阻止失败后的下游调度。
+        const results = await Promise.allSettled(
+          stage.map((agent) =>
+            this.executeNode(id, agent, upstream, controller),
+          ),
         );
+        const failure = results.find((result) => result.status === "rejected");
+        if (failure?.status === "rejected") throw failure.reason;
         controller.signal.throwIfAborted();
-        r = this.d.require("run", id);
-        if (r.status === "cancelled") return;
-        const current = r.nodes[i];
-        current.status = "succeeded";
-        current.output = schema.parse(output);
-        current.summary = output.summary;
-        current.finishedAt = new Date().toISOString();
-        this.d.store.put("run", r, id);
       }
       r = this.d.require("run", id);
       this.finalize(r);
@@ -233,26 +213,84 @@ export class Runs {
             : controller.signal.aborted
               ? "运行已中断"
               : "节点执行失败，可重试";
-        const n =
-          r.nodes.find((n: any) => n.status === "running") ||
-          r.nodes.find((n: any) => n.agent === "planner");
-        if (n) {
-          n.status = "failed";
-          n.error = message;
-          let downstream = false;
-          r.nodes = r.nodes.map((node: any) => {
-            if (node === n) {
-              downstream = true;
-              return node;
-            }
-            return downstream ? { agent: node.agent, status: "waiting" } : node;
-          });
+        // 节点失败已由各分支记录；最终业务校验失败则重做计划及其下游。
+        if (!r.nodes.some((n: any) => n.status === "failed")) {
+          const n = r.nodes.find((n: any) => n.agent === "planner");
+          if (n) {
+            n.status = "failed";
+            n.error = message;
+            const stages = runStages(r.kind);
+            const downstream = stages
+              .slice(stages.findIndex((s) => s.includes("planner")) + 1)
+              .flat();
+            r.nodes = r.nodes.map((node: any) => {
+              return downstream.includes(node.agent)
+                ? { agent: node.agent, status: "waiting" }
+                : node;
+            });
+          }
         }
         this.d.store.put("run", { ...r, status: "failed", error: message }, id);
         this.restoreGoal(r);
       }
     } finally {
       this.controllers.delete(id);
+    }
+  }
+  async executeNode(
+    id: string,
+    agent: AgentId,
+    upstream: Record<string, any>,
+    controller: AbortController,
+  ) {
+    controller.signal.throwIfAborted();
+    let r = this.d.require("run", id);
+    const node = r.nodes.find((n: any) => n.agent === agent);
+    if (!node || ["succeeded", "skipped"].includes(node.status)) return;
+    if (!r.configSnapshot[agent]) {
+      node.status = "skipped";
+      node.summary = "该角色已暂停";
+      this.d.store.put("run", r, id);
+      return;
+    }
+    node.status = "running";
+    node.startedAt = new Date().toISOString();
+    this.d.store.put("run", r, id);
+    const schema =
+      r.kind === "quiz" && agent === "learning" ? schemas.quiz : schemas[agent];
+    try {
+      const output = schema.parse(
+        await this.model(
+          agentInfo.find((a) => a.id === agent)!.name,
+          schema,
+          { ...r.context, upstream, validationFeedback: r.lastFailure },
+          controller.signal,
+        ),
+      );
+      controller.signal.throwIfAborted();
+      // 每次写入读取最新记录，避免并发分支互相覆盖节点状态。
+      r = this.d.require("run", id);
+      if (r.status === "cancelled") return;
+      const current = r.nodes.find((n: any) => n.agent === agent);
+      Object.assign(current, {
+        status: "succeeded",
+        output,
+        summary: output.summary,
+        finishedAt: new Date().toISOString(),
+      });
+      this.d.store.put("run", r, id);
+    } catch (e) {
+      r = this.d.require("run", id);
+      if (r.status !== "cancelled") {
+        const current = r.nodes.find((n: any) => n.agent === agent);
+        Object.assign(current, {
+          status: "failed",
+          error: e instanceof DomainError ? e.message : "节点执行失败，可重试",
+          finishedAt: new Date().toISOString(),
+        });
+        this.d.store.put("run", r, id);
+      }
+      throw e;
     }
   }
   finalize(r: Row) {
@@ -365,6 +403,7 @@ export class Runs {
         ...r,
         status: "queued",
         lastFailure: r.error,
+        orchestration: "parallel-v1",
         error: null,
         nodes: r.nodes.map((n: any) =>
           n.status === "failed" || n.status === "running"

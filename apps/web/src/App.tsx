@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import { Form, Modal, Empty, Stat, Progress, type Field } from "./components";
-import { agentInfo, statusLabels } from "../../../shared/contracts";
+import { agentInfo, statusLabels, runStages } from "../../../shared/contracts";
 type Item = Record<string, any> & { id: string };
 type Data = {
   version: number;
@@ -1491,28 +1491,71 @@ export function App() {
               <p className="modal-desc">
                 {r.title} · {label(r.status)}
               </p>
-              {r.nodes.map((n: any) => (
-                <div className="run-log" key={n.agent}>
-                  <span className="agent-avatar">
-                    {agentInfo.find((a) => a.id === n.agent)?.icon}
-                  </span>
-                  <div className="task-body">
-                    <b>{agentInfo.find((a) => a.id === n.agent)?.name}</b>
-                    <p>{n.error || n.summary || "等待上游产出"}</p>
-                    <small>
-                      {n.finishedAt
-                        ? new Date(n.finishedAt).toLocaleTimeString()
-                        : ""}
-                    </small>
+              <p className="modal-desc">
+                {r.orchestration === "parallel-v1"
+                  ? r.kind === "quiz"
+                    ? "协调分派后，学习 Agent 生成测验。"
+                    : "学习与生活 Agent 同时分析，后续角色等待完整产出再继续。"
+                  : "此记录采用顺序执行；新发起的协作支持并行分析。"}
+              </p>
+              {(r.orchestration === "parallel-v1"
+                ? runStages(r.kind)
+                : r.nodes.map((n: any) => [n.agent])
+              ).map((stage: string[], index: number) => (
+                <section className="run-stage" key={index}>
+                  <div className="run-stage-heading">
+                    <b>阶段 {index + 1}</b>
+                    <span className="tag">
+                      {stage.length > 1 ? "并行分析" : "依次衔接"}
+                    </span>
                   </div>
-                  <span
+                  <div
                     className={
-                      "run-state " + (n.status === "failed" ? "failed" : "")
+                      "run-stage-nodes" + (stage.length > 1 ? " parallel" : "")
                     }
                   >
-                    {label(n.status)}
-                  </span>
-                </div>
+                    {stage
+                      .map((agent: string) =>
+                        r.nodes.find((n: any) => n.agent === agent),
+                      )
+                      .filter(Boolean)
+                      .map((n: any) => (
+                        <div className="run-log" key={n.agent}>
+                          <span className="agent-avatar">
+                            {agentInfo.find((a) => a.id === n.agent)?.icon}
+                          </span>
+                          <div className="task-body">
+                            <b>
+                              {agentInfo.find((a) => a.id === n.agent)?.name}
+                            </b>
+                            <p>
+                              {n.error ||
+                                n.summary ||
+                                (n.status === "running"
+                                  ? "正在分析…"
+                                  : "等待上游产出")}
+                            </p>
+                            <small>
+                              {n.finishedAt
+                                ? (n.startedAt
+                                    ? new Date(
+                                        n.startedAt,
+                                      ).toLocaleTimeString() + " → "
+                                    : "") +
+                                  new Date(n.finishedAt).toLocaleTimeString()
+                                : n.startedAt
+                                  ? "开始于 " +
+                                    new Date(n.startedAt).toLocaleTimeString()
+                                  : ""}
+                            </small>
+                          </div>
+                          <span className={"run-state " + n.status}>
+                            {label(n.status)}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
+                </section>
               ))}
               {r.error && <p className="error">{r.error}</p>}
               <div className="modal-footer">
