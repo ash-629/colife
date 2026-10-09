@@ -1497,14 +1497,32 @@ export function App() {
             <br />
             关联：{goalName(t.goal)} · {t.date}
           </div>
-          <small>
-            依赖：
-            {t.dependencies
-              ?.map((id: string) => data.tasks.find((t) => t.id === id)?.title)
-              .join("、") || "无"}
-            <br />
-            来源：{t.source}
-          </small>
+          <div className="task-dependencies">
+            <small>依赖任务：</small>
+            {t.dependencies?.length ? (
+              <div className="dependency-links">
+                {t.dependencies.map((id: string) => {
+                  const dependency = data.tasks.find((task) => task.id === id);
+                  return dependency ? (
+                    <button
+                      className="text-button dependency-link"
+                      key={id}
+                      onClick={() => setModal({ kind: "task", id })}
+                      aria-label={`查看依赖任务：${dependency.title}`}
+                    >
+                      <span>{dependency.title} ↗</span>
+                      <small>{label(dependency.status)}</small>
+                    </button>
+                  ) : (
+                    <small key={id}>依赖任务已不可用</small>
+                  );
+                })}
+              </div>
+            ) : (
+              <small>无</small>
+            )}
+          </div>
+          <small>来源：{t.source}</small>
           <div className="modal-footer">
             {button(
               "开始专注",

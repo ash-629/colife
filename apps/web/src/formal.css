@@ -13,6 +13,36 @@
 .task-clickable:focus-within {
   background-color: #f3f7f3;
 }
+.task-dependencies {
+  margin: 12px 0;
+}
+.dependency-links {
+  display: grid;
+  gap: 6px;
+  margin-top: 6px;
+}
+.dependency-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  text-align: left;
+}
+.dependency-link span {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.dependency-link small {
+  white-space: nowrap;
+  color: var(--muted);
+}
+.dependency-link:hover {
+  background-color: #f3f7f3;
+}
 .error-banner {
   position: sticky;
   top: 0;
